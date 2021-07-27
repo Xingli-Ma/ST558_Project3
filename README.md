@@ -6,4 +6,4 @@ Its purpose is to show    .
 
 To run this app, the following packages need to be installed and loaded.    
 
-shiny::runGitHub()   
+shiny::runGitHub(Project3_ShinyApp)   
