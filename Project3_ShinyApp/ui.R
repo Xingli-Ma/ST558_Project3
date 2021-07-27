@@ -9,11 +9,15 @@
 
 library(shiny)
 
+# Read in the American black bear data
+ABB <- read.csv("ABBdata.csv", stringsAsFactors = FALSE)
+print(str(ABB))
+
 # Define UI for application that draws a histogram
 shinyUI(fluidPage(
 
     # Application title
-    titlePanel("Old Faithful Geyser Data"),
+    titlePanel("American black bear distribution data"),
 
     # Sidebar with a slider input for number of bins
     sidebarLayout(
@@ -27,7 +31,17 @@ shinyUI(fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-            plotOutput("distPlot")
+            tabsetPanel(type="tab",
+                        tabPanel("About", textOutput("about")),
+                        tabPanel("Data", tableOutput("ABBdata")),
+                        tabPanel("Data Exploration", plotOutput("explore")),
+                        tabPanel("Modeling Info", ),
+                        tabPanel("Modeling Fitting", ),
+                        tabPanel("Prediction", ),
+                        tabPanel("Summary", verbatimTextOutput("summ")),
+                        tabPanel("Plot", plotOutput("plot"))
+                
+            )
         )
     )
 ))

@@ -1,0 +1,54 @@
+---
+title: "Project3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## About   
+
+### The purpose of the app    
+
+This shiny app is created to demonstrate the American black bear data information, allow users to explore the data and make customized summaries, build and compare three models on the training set of the data, and select the best model to make predictions on the testing set.    
+
+### The data and data source    
+
+The American black bear distribution data come from the [iNaturalist database](https://www.inaturalist.org/). 
+
+```{r graphics, out.width = "300px"}
+knitr::include_graphics("iNaturalist.jpg")
+```    
+
+The data set was provided by Brent Pease of the Department of Forestry and Environmental Resources at NC State University. The data set consists of a randomly-selected set of 927 (50 km2) regions from Western North America. It has 10 variables:    
+    Y: Number of black bear reports,     
+    N: Number of surveys submitted, 
+    forest: Proportion of the region that is forest,     
+    grassland: Proportion of the region that is grassland,     
+    cropland: Proportion of the region that is cropland ,     
+    temp (Annual average temperature,    
+    precip: Annual average precipitation,    
+    humanPop: Human population,    
+    protected: Indicator of whether the region includes protected lands,    
+    ecoregion: Either \MARINE WEST COAST FOREST", \MEDITERRANEAN CALIFORNIA", \NORTH AMERICAN DESERTS" or \NORTHWESTERN FORESTED MOUNTAINS".       
+
+### The functionalities of the app    
+
+This shiny app has four tabs: **About**, **Data**, **Data Exploration**, and **Modeling**. The **About** page has a brief introduction about this app and its functionalities, as well as data description and data source. The **Data** page allows users to view and subset the data and download and save the data. The **Data Exploration** page generates different types of plots that can be specified by users and create summaries. The **Modeling** page fits three statistical models, including modeling approaches. The **Modeling** page has three tabs: **Modeling Info**, **Model Fitting**, and **Prediction**. More information relevant to each tab are available at the beginning of each page.    
+
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

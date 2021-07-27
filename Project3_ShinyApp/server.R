@@ -9,9 +9,23 @@
 
 library(shiny)
 
+# Read in the American black bear data
+ABB <- read.csv("ABBdata.csv", stringsAsFactors = FALSE)
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
 
+    output$ABBdata <- renderTable({
+        ABBdata
+    })
+    output$summ <- renderPrint({
+        summary(ABBdata)
+    })
+    output$plot <- renderPlot({
+        with(ABBdata, boxplot(y~x))
+    })
+    
+    
     output$distPlot <- renderPlot({
 
         # generate bins based on input$bins from ui.R
