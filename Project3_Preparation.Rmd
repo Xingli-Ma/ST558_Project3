@@ -4,6 +4,13 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+require(rmarkdown)
+require(knitr)
+library(caret)
+library(ggplot2)
+require(corrplot)
+library(tidyverse)
+library(DT)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -18,7 +25,7 @@ This shiny app is created to demonstrate the American black bear data informatio
 The American black bear distribution data come from the [iNaturalist database](https://www.inaturalist.org/). 
 
 ```{r graphics, out.width = "300px"}
-knitr::include_graphics("iNaturalist.jpg")
+knitr::include_graphics("Project3_ShinyApp/iNaturalist.jpg")
 ```    
 
 The data set was provided by Brent Pease of the Department of Forestry and Environmental Resources at NC State University. The data set consists of a randomly-selected set of 927 (50 km2) regions from Western North America. It has 10 variables:    
@@ -31,24 +38,74 @@ The data set was provided by Brent Pease of the Department of Forestry and Envir
     precip: Annual average precipitation,    
     humanPop: Human population,    
     protected: Indicator of whether the region includes protected lands,    
-    ecoregion: Either \MARINE WEST COAST FOREST", \MEDITERRANEAN CALIFORNIA", \NORTH AMERICAN DESERTS" or \NORTHWESTERN FORESTED MOUNTAINS".       
+    ecoregion: Either "MARINE WEST COAST FOREST", "MEDITERRANEAN CALIFORNIA", "NORTH AMERICAN DESERTS" or "NORTHWESTERN FORESTED MOUNTAINS".       
 
 ### The functionalities of the app    
 
 This shiny app has four tabs: **About**, **Data**, **Data Exploration**, and **Modeling**. The **About** page has a brief introduction about this app and its functionalities, as well as data description and data source. The **Data** page allows users to view and subset the data and download and save the data. The **Data Exploration** page generates different types of plots that can be specified by users and create summaries. The **Modeling** page fits three statistical models, including modeling approaches. The **Modeling** page has three tabs: **Modeling Info**, **Model Fitting**, and **Prediction**. More information relevant to each tab are available at the beginning of each page.    
 
+## Data    
 
+```{r read data}
+# Read data and clean up data  
+ABB <- read.csv("ABBdata.csv")
+# Convert categorical variables to factors
+ABB$protected <- as.factor(ABB$protected)
+ABB$ecoregion <- as.factor(ABB$ecoregion)
+ABB <- ABB[,-1]
+print(str(ABB))
+```    
 
-```{r cars}
-summary(cars)
+```{r display data}
+# Display data  
+DT::datatable(ABB)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+## Data Exploration    
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+# Numerical summaries on the data
+kable(summary(select(ABB, c(Y,N,forest, grassland,cropland,temp,precip,humanPop,protected,ecoregion
+))))
+```    
+
+```{r}
+# Contingency table comparing number of black bear reports by ecoregion
+kable(ABB %>% group_by(ecoregion) %>% summarise(sum_Y = sum(Y)), caption = 'Number of black bear by ecoregion')
+```    
+
+    
+    }
+    output$dt_ecoregion <- renderText({
+        knitr::kable(ABB %>% group_by(ecoregion) %>% summarise(sum_Y = sum(Y)))
+    })
+    
+    output$dt_protected <- function(){
+        ABBdata %>% group_by(protected) %>% summarise(sum_Y = sum(Y)) %>%
+            knitr::kable("html") %>%
+            kable_styling("striped", full_width = F)
+    }
+    
+                                                        htmlOutput("dt_ecoregion"),
+                                                        tableOutput("dt_ecoregion"),
+                                                        DTOutput(outputId = "dt_ecoregion"),
+                                                        br(),
+                                                        br(),
+                                                        htmlOutput("dt_protected"),
+                                                        tableOutput("dt_protected")
+                                                        
+                                                        
+
+```{r}
+# Contingency table comparing number of black bear reports by whether or not protected lands
+kable(ABB %>% group_by(protected) %>% summarise(sum_Y = sum(Y)), caption = 'Number of black bear by whether or not protected lands')
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+ggplot(data = ABB) +
+  geom_bar(mapping = aes(x = ecoregion, y))
+```
+
