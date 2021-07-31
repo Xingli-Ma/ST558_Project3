@@ -198,6 +198,11 @@ shinyServer(function(input, output, session) {
         
         # Show RMSE values for all models
         testResults %>% knitr::kable("html") %>% kable_styling("striped", full_width = F)
-        } 
+    }
     
+    # Declear the best model
+    output$best_model <- renderPrint({
+    bestModel <- rownames(testResults[testResults$RMSE == min(testResults$RMSE), ])
+    paste("The best model is:", bestModel, "!")
+    })
 })

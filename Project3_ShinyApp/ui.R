@@ -29,6 +29,10 @@ dashboardPage(skin="red",
         )
     ),
     dashboardBody(
+        tags$head(
+            tags$style(
+                HTML(
+                    '#best_model {font-weight: bold; color: red;}'))),
         tabItems(
 # ______________________________________________________________________________________
             # About tab
@@ -229,7 +233,7 @@ h3("In the Model Fitting section, all three models will be fitted on the traing 
 )),
     fluidRow(
     column(4, wellPanel(
-h2(tags$b("Model 1: Generalized Linear Regression Model")),
+h2(tags$b("Model 1: Generalized Linear Model")),
 h3("A logistic regression model is fitted with ", em("pi(Yi/Ni)"), " as response, other variables as predictors."),
 br(),
 h3("The logistic regression model equation is as follows:"),
@@ -254,7 +258,7 @@ br()))
 # Model Fitting tab
                 tabPanel("Model Fitting", tableOutput("fitting"),
                         fluidRow(
-                        column(3,
+                        column(4,
                                
                         box(width = 12,
                         sliderInput("percent", "Training Set (percent of data set)",min = 0, max = 100, value = 80, step = 5)),
@@ -284,11 +288,13 @@ br()))
                             ),
                         
                         box(width = 12,
-                            tableOutput("test_results")
+                            h3("Compare model results and select the best model that has the smallest RMSE value."),
+                            tableOutput("test_results"),
+                            verbatimTextOutput("best_model")
                             )
                         ), #end of column 3
                         
-                        column(9,
+                        column(8,
                             fluidRow(wellPanel(
                                 h3("Model 1 output"),
                                 verbatimTextOutput("dt_fit1")
@@ -309,12 +315,38 @@ br()))
                     ), # end of fitting tab
 # ______________________________________________________________________________________
 # Model Prediction tab
-                tabPanel("Prediction", tableOutput("prediction"),
-                        fluidPage())
-                        
-                        
-                        )))
+        tabPanel("Prediction", tableOutput("prediction"),
+            fluidRow( h2("Step 1:"), 
+                           h3("Please input the value for each predictor to make prediction, which is the probability of an American black bear being observed in your survey location (50 km2 area)."),
+                     br(),
+                     column(3, fluidRow( numericInput("forest",label="Proportion of the region that is forest (please input a value between 0 and 1)", value = NULL, min = 0, max = 1)),
+                            br(),
+                               fluidRow( numericInput("grassland",label="Proportion of the region that is grassland (please input a value between 0 and 1)", value = NULL, min = 0, max = 1))
+                            ),
+                     column(3, fluidRow( numericInput("cropland",label="Proportion of the region that is cropland (please input a value between 0 and 1)", value = NULL, min = 0, max = 1)),
+                            br(),
+                               fluidRow( numericInput("temp",label="Annual average temperature (please enter the temperature on the Fahrenheit scale)", value = NULL, min = -100, max = 300))
+                            ),
+                     column(3, fluidRow( numericInput("precip",label="Annual average precipitation (please enter the precipitation in millimeters)", value = NULL, min = 0, max = 10000)),
+                            br(),
+                               fluidRow( numericInput("humanPop",label= "Human population (please enter the human population in your survey location)", value = NULL, min = 0, max = 1000000))
+                            ),
+                     column(3, fluidRow( selectizeInput("protected", "Protected lands (please select the Indicator of whether the region includes protected lands)", selected = "0", choices = levels(ABB$protected))),
+                            br(),
+                               fluidRow( selectizeInput("ecoregion", "Ecoregion (please select the ecoregion that your survey location belongs to)", selected = "MARINE WEST COAST FOREST", choices = levels(ABB$ecoregion)))
+                            )
+                    
+                    ),
+            fluidRow( h2("Step 2:"), 
+                            h3("Choose Model to Make Prediction"),
+                            radioButtons("model", "Select the Model Type", choices = list("Generalized Linear Model" = "linear", "Boosted Tree Model" = "tree", "Random Forest Model" = "rf", "The Best Model (the model has the smallest RMSE on the Model Fitting page)" = "best"), selected = "best")),
+                      
+            fluidRow( h2("Step 3:"),
+                           h3("The prediction value is: "))
+                     
+                
+        )
             
-            )
+            ))))
         )
     )

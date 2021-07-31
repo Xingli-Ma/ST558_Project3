@@ -194,12 +194,12 @@ row.names(testResults) <- c("Linear Regression",
                             "Boosted Tree",
                             "Random Forest")
 # show RMSE values for all models
-kable(testResults)
+kable(testResults) 
 ```    
 
 ```{r}
 #Declare the Winner
-#Select the best model that has the smallest RMSE value.
+#The best model was selected that has the smallest RMSE value.
 
 # Find the best model with lowest RMSE value
 bestModel <- rownames(testResults[testResults$RMSE == min(testResults$RMSE), ])
