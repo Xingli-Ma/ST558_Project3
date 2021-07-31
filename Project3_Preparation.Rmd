@@ -109,3 +109,114 @@ ggplot(data = ABB) +
   geom_bar(mapping = aes(x = ecoregion, y))
 ```
 
+
+
+```{r}
+ABB_new <- ABB
+ABB_new$P <- ABB$Y/ABB$N
+ABB_new <- select(ABB_new, -c(Y, N))
+ABB_new
+```   
+```{r}
+    set.seed(558)
+    ABBIndex <- createDataPartition(ABB_new$P, p = 0.7, list = FALSE)
+    ABBTrain <- ABB_new[ABBIndex, ]
+    ABBTest <- ABB_new[-ABBIndex, ]
+    ABBTrainTest <- list(ABBTrain,ABBTest)
+    head(ABBTrainTest[[1]])
+```
+
+
+## Model 1: Logistic Regression
+
+```{r}
+# Define training control
+trctrl <- trainControl(method = "cv", number = 10)
+fit1 <- train(P~ ., data = ABBTrain,
+               method = "glm",
+               family = "binomial",
+               preProcess = c("center", "scale"),
+               trControl = trctrl)
+fit1
+```
+
+
+
+
+
+## Model 2: Boosted Tree Model
+```{r}
+set.seed(123)
+# Fit the boosted tree model on training set
+fit2 <- train(P ~., data = ABBTrain,
+                         method = "gbm",
+                         trControl = trctrl, # Passing trainControl() method
+                         preProcess = c("center", "scale"), # Standardize variables
+                         verbose = FALSE)
+fit2
+```
+
+
+
+
+
+## Model 3: Random Forest    
+```{r}
+set.seed(123)
+# Fit the random forest model on training set
+fit3 <- train(P ~ ., data = ABBTrain,
+               method = "rf",
+               preProcess = c("center", "scale"),
+               trControl = trctrl)
+fit3
+```   
+
+## Model Selection
+###Prediction on Testing Set
+####Using each of the four models, make predictions on the testing data set.
+
+
+```{r}
+predfit1 <- predict(fit1, newdata = ABBTest)
+predfit2 <- predict(fit2, newdata = ABBTest)
+predfit3 <- predict(fit3, newdata = ABBTest)
+```    
+
+```{r}
+#Comparing Models
+#Evaluate the model performances by comparing the testing RMSE values.
+
+testResults <- rbind(postResample(predfit1, ABBTest$P),
+                     postResample(predfit2, ABBTest$P),
+                     postResample(predfit3, ABBTest$P))
+testResults <- data.frame(testResults)
+row.names(testResults) <- c("Linear Regression",
+                            "Boosted Tree",
+                            "Random Forest")
+# show RMSE values for all models
+kable(testResults)
+```    
+
+```{r}
+#Declare the Winner
+#Select the best model that has the smallest RMSE value.
+
+# Find the best model with lowest RMSE value
+bestModel <- rownames(testResults[testResults$RMSE == min(testResults$RMSE), ])
+print(paste("Best model to use:", bestModel))
+```   
+
+
+## Prediction
+```{r}
+# Give user inputs on the eight parameters,convert it to a data frame
+ apply the best model to the new data frame and make prediction,
+return the prediction value
+
+pred <- predict(bestModel, newdata = ABBTest)
+```
+
+
+
+
+

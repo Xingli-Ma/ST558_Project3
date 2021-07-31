@@ -55,7 +55,7 @@ shinyServer(function(input, output, session) {
     # Numerical summaries
     # render summary table
     data_sum <- reactive({
-        ABB_sum <- ABBdata %>% select(as.vector(input$sel_var_2))
+        ABB_sum <- ABBdata %>% select(as.vector(input$sel_var))
     })
     output$dt_sum <- renderPrint({
         summary(data_sum())
@@ -91,13 +91,13 @@ shinyServer(function(input, output, session) {
     
     #create dynamic histogram title1
     output$title1 <- renderUI({
-        text1 <- paste0("Histogram for ", str_to_title(input$var))
+        text1 <- paste0("Histogram for ", str_to_title(input$his_var))
         h3(text1)
     })
     
     # Create a histogram plot for select variable
     output$hisPlot <- renderPlot({
-    h <- ggplot(ABBdata, aes_string(x=input$var))
+    h <- ggplot(ABBdata, aes_string(x=input$his_var))
     h + geom_histogram(bins=20, aes(y=..density..)) + 
         geom_density(stat="density", adjust=0.4, lwd=2, colour= "red") +
         xlab("Number of Black Bear") + ylab("Density")
@@ -123,12 +123,81 @@ shinyServer(function(input, output, session) {
     #__________________________________________________________________________________________
     # Model page
     # Model Info tab
-
-    # set seed for reproducible
-    #set.seed(558)
-    #train <- reactive({sample(1:nrow(ABBdata), size = nrow(ABBdata)*as.numeric(input$percent)/100)})
-    #test <- dplyr::setdiff(1:nrow(ABBdata),train())
-    #train_set <- ABBdata[train,]
-    #test_set <- ABBdata[test,]
+    # Model Fitting tab
+    ABB_new <- ABBdata
+    ABB_new$P <- ABB$Y/ABB$N
+    # Remove Y variable
+    ABB_new <- ABB_new[,-1]
+    # Model 1: Generalized Linear Regression Model
+    # Define training control
+    
+    # Split the data into training and testing sets, and save them as reactive values
+    data_list <- reactive({
+        # set seed for reproducible
+        set.seed(558)
+        ABB_user_select <- ABB_new %>% select(P, N, as.vector(input$sel_pre))
+        ABBIndex <- createDataPartition(ABB_user_select$P, p = (input$percent)/100, list = FALSE)
+        ABB_train <- ABB_user_select[ABBIndex, ]
+        ABB_test <- ABB_user_select[-ABBIndex, ]
+        list(ABB_train, ABB_test)
+        })
+    
+    results_list <- reactive({
+        # Fit model 1: Generalized Linear Regression Model
+        fit1 <- train(P ~ .-N, data = data_list()[[1]],
+                      method = "glm",
+                      family = "binomial",
+                      weights = data_list()[[1]]$N,
+                      preProcess = c("center", "scale"),
+                      trControl = trainControl(method = "cv", number = input$fold))
+        # Fit model 2: Boosted Tree Model
+        fit2 <- train(P~ ., data = select(data_list()[[1]],-c(N)),
+                      method = "gbm",
+                      preProcess = c("center", "scale"),
+                      verbose = FALSE,
+                      trControl = trainControl(method = "cv", number = input$fold))
+        # Fit model 3: Random Forest Model
+        fit3 <- train(P~ ., data = select(data_list()[[1]],-c(N)),
+                      method = "rf",
+                      preProcess = c("center", "scale"),
+                      trControl = trainControl(method = "cv", number = input$fold))
+        model_fits <- list(fit1, fit2, fit3)
+        model_fits
+    })
+    
+    output$dt_fit1 <- renderPrint({
+        results_list()[[1]]
+    })
+    
+    
+    output$dt_fit2 <- renderPrint({
+        results_list()[[2]]
+    })
+    
+    
+    output$dt_fit3 <- renderPrint({
+        results_list()[[3]]
+    })
+    
+    # Comparing and Selecting Models
+    output$test_results <- function(){
+        
+        # Making predictions on testing set
+        predfit1 <- predict(results_list()[[1]], newdata = data_list()[[2]])
+        predfit2 <- predict(results_list()[[2]], newdata = select(data_list()[[2]],-c(N)))
+        predfit3 <- predict(results_list()[[3]], newdata = select(data_list()[[2]],-c(N)))
+        
+        # Evaluate the model performances by comparing the testing RMSE values
+        testResults <- rbind(postResample(predfit1, data_list()[[2]]$P),
+                         postResample(predfit2, data_list()[[2]]$P),
+                         postResample(predfit3, data_list()[[2]]$P))
+        testResults <- data.frame(testResults)
+        row.names(testResults) <- c("Generalized Linear Regression",
+                                "Boosted Tree",
+                                "Random Forest")
+        
+        # Show RMSE values for all models
+        testResults %>% knitr::kable("html") %>% kable_styling("striped", full_width = F)
+        } 
     
 })
