@@ -183,6 +183,18 @@ predfit3 <- predict(fit3, newdata = ABBTest)
 ```    
 
 ```{r}
+# Prediction on new dataset
+
+new_Data <- data.frame(c(0), c(2), c(0), c(0.333333333), c(0), c(-84.25), c(507.25), c(0), c(as.character(1)),c("NORTHWESTERN FORESTED MOUNTAINS"), stringsAsFactors=FALSE)
+
+colnames(new_Data) <- c("Y", "N", "forest", "grassland", "cropland", "temp", "precip", "humanPop", "protected", "ecoregion")
+
+pred1 <- predict(fit1, newdata =new_Data)
+print(pred1[[1]])
+```
+
+
+```{r}
 #Comparing Models
 #Evaluate the model performances by comparing the testing RMSE values.
 

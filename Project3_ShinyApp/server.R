@@ -9,6 +9,7 @@ library(kableExtra)
 library(tibble)
 library(caret)
 library(ggplot2)
+library(plotly)
 require(corrplot)
 library(tidyverse)
 library(dplyr)
@@ -20,7 +21,6 @@ ABBdata <- read.csv("ABBdata.csv")
 ABBdata$protected <- as.factor(ABBdata$protected)
 ABBdata$ecoregion <- as.factor(ABBdata$ecoregion)
 ABBdata <- ABBdata[,-1]
-print(str(ABBdata))
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
@@ -109,17 +109,23 @@ shinyServer(function(input, output, session) {
         h3(text2)
     })
     
+    #____________________________________________________________________________________________
     # Create a histogram plot for select variable by ecoregion
-    output$hisPlotReg <- renderPlot({
+    #output$hisPlotReg <- renderPlot({
         # "forest", "grassland", "cropland", "temp", "precip", "humanPop"
-    hr <- ggplot(ABBdata, aes_string(x=input$var))
-    hr + geom_histogram(bins=20, aes(y=..density..)) + 
-        geom_density(stat="density", adjust=0.4, lwd=2, colour= "red") +
-        facet_wrap(~ ecoregion, ncol = 2) +
-        xlab("Number of Black Bear") + ylab("Density")
+    #hr <- ggplot(ABBdata, aes_string(x=input$var))
+    #hr + geom_histogram(bins=20, aes(y=..density..)) + 
+        #geom_density(stat="density", adjust=0.4, lwd=2, colour= "red") +
+        #facet_wrap(~ ecoregion, ncol = 2) +
+        #xlab("Number of Black Bear") + ylab("Density")
+    #})
+    #_________________________________________________________________________________________
+    
+    output$graph <- renderPlotly({
+        plot_ly(ABBdata, x = ~get(input$choice), y = ~Y, type = 'scatter', mode = 'markers') %>%
+            layout(xaxis = list(title = input$choice), yaxis = list(title = "Number of Black Bear"))
+        
     })
-    
-    
     #__________________________________________________________________________________________
     # Model page
     # Model Info tab
@@ -205,4 +211,29 @@ shinyServer(function(input, output, session) {
     bestModel <- rownames(testResults[testResults$RMSE == min(testResults$RMSE), ])
     paste("The best model is:", bestModel, "!")
     })
+    
+    #__________________________________________________________________________________________
+    # Model Prediction
+    
+    # Create a data frame given user input values, and store it as reactive values.
+    new_data <- reactive({
+        newData <- data.frame(c(1), c(input$forest), c(input$grassland), c(input$cropland), c(input$temp), c(input$precip), c(input$humanPop), c(as.character(input$protected)),c(input$ecoregion), stringsAsFactors=FALSE)
+        colnames(newData) <- c("N", "forest", "grassland", "cropland", "temp", "precip", "humanPop", "protected", "ecoregion")
+        newData
+    })
+    
+    # Make prediction
+    output$pred <- renderPrint({
+        if(input$model == "linear"){
+            pred <- predict(results_list()[[1]], newdata = new_data())
+            pred[[1]]
+        } else if(input$model == "tree"){
+            pred <- predict(results_list()[[2]], newdata = new_data())
+            pred[[1]]
+        } else if(input$model == "rf"){
+            pred <- predict(results_list()[[3]], newdata = new_data())
+            pred[[1]]
+        }
+    })
+    
 })

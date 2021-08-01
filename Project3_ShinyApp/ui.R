@@ -9,10 +9,17 @@ library(kableExtra)
 library(tibble)
 library(caret)
 library(ggplot2)
+library(plotly)
 require(corrplot)
 library(tidyverse)
 library(DT)
 
+# Read data and clean up data  
+ABBdata <- read.csv("ABBdata.csv")
+# Convert categorical variable to factor
+ABBdata$protected <- as.factor(ABBdata$protected)
+ABBdata$ecoregion <- as.factor(ABBdata$ecoregion)
+ABBdata <- ABBdata[,-1]
 
 dashboardPage(skin="red",
               
@@ -32,7 +39,7 @@ dashboardPage(skin="red",
         tags$head(
             tags$style(
                 HTML(
-                    '#best_model {font-weight: bold; color: red;}'))),
+                    '#best_model {font-weight: bold; color: red;}', '#predict {color: navy blue; font-size: 24px;}', '#fit {color: navy blue; font-size: 24px;}' ))),
         tabItems(
 # ______________________________________________________________________________________
             # About tab
@@ -205,12 +212,31 @@ dashboardPage(skin="red",
                 
                 column(6,
                 box(width = 15,
-                uiOutput("title2"),
-                plotOutput("hisPlotReg"),
+                selectInput(inputId="choice", label="Choose Variables to Make Scatter Plot", 
+                choices = list(
+                    "Number of surveys" = "N",
+                    "Proportion of forest" = "forest",
+                    "Proportion of grassland" = "grassland",
+                    "Proportion cropland" = "cropland",
+                    "Annual average temperature" = "temp",
+                    "Annual average precipitation" = "precip",
+                    "Human population" = "humanPop",
+                    "Protected lands" = "protected",
+                    "Ecoregion" = "ecoregion")),
+                plotlyOutput("graph"),
                 br()
                 )# end of box
                 ) # end of column 6
             ) # end of fluidRow
+            
+            #_________________________________________
+            #fluidRow(
+            #column(6,
+            #box(width = 15,
+            #uiOutput("title2"),
+            #plotOutput("hisPlotReg"),
+            #br())))
+            #____________________________________________
         ) # end of tabPanel
     ) # end of tabsetPanel
     ) # end of fluidPage
@@ -288,6 +314,9 @@ br()))
                             ),
                         
                         box(width = 12,
+#__________________________________________________________________________________________________
+#__________________________________________________________________________________________________
+                            h3("Click ", actionButton("fit", "Fit Models")),
                             h3("Compare model results and select the best model that has the smallest RMSE value."),
                             tableOutput("test_results"),
                             verbatimTextOutput("best_model")
@@ -319,19 +348,19 @@ br()))
             fluidRow( h2("Step 1:"), 
                            h3("Please input the value for each predictor to make prediction, which is the probability of an American black bear being observed in your survey location (50 km2 area)."),
                      br(),
-                     column(3, fluidRow( numericInput("forest",label="Proportion of the region that is forest (please input a value between 0 and 1)", value = NULL, min = 0, max = 1)),
+                     column(3, fluidRow( numericInput("forest",label="Proportion of the region that is forest (please input a value between 0 and 1)", value = median(ABBdata$forest), min = 0, max = 1)),
                             br(),
-                               fluidRow( numericInput("grassland",label="Proportion of the region that is grassland (please input a value between 0 and 1)", value = NULL, min = 0, max = 1))
+                               fluidRow( numericInput("grassland",label="Proportion of the region that is grassland (please input a value between 0 and 1)", value = median(ABBdata$grassland), min = 0, max = 1))
                             ),
-                     column(3, fluidRow( numericInput("cropland",label="Proportion of the region that is cropland (please input a value between 0 and 1)", value = NULL, min = 0, max = 1)),
+                     column(3, fluidRow( numericInput("cropland",label="Proportion of the region that is cropland (please input a value between 0 and 1)", value = median(ABBdata$cropland), min = 0, max = 1)),
                             br(),
-                               fluidRow( numericInput("temp",label="Annual average temperature (please enter the temperature on the Fahrenheit scale)", value = NULL, min = -100, max = 300))
+                               fluidRow( numericInput("temp",label="Annual average temperature (please enter the temperature on the Fahrenheit scale)", value = median(ABBdata$temp), min = -100, max = 300))
                             ),
-                     column(3, fluidRow( numericInput("precip",label="Annual average precipitation (please enter the precipitation in millimeters)", value = NULL, min = 0, max = 10000)),
+                     column(3, fluidRow( numericInput("precip",label="Annual average precipitation (please enter the precipitation in millimeters)", value =median(ABBdata$precip), min = 0, max = 10000)),
                             br(),
-                               fluidRow( numericInput("humanPop",label= "Human population (please enter the human population in your survey location)", value = NULL, min = 0, max = 1000000))
+                               fluidRow( numericInput("humanPop",label= "Human population (please enter the human population in your survey location)", value = median(ABBdata$humanPop), min = 0, max = 1000000))
                             ),
-                     column(3, fluidRow( selectizeInput("protected", "Protected lands (please select the Indicator of whether the region includes protected lands)", selected = "0", choices = levels(ABB$protected))),
+                     column(3, fluidRow( selectizeInput("protected", "Protected lands (please select the Indicator of whether the region includes protected lands)", selected = as.character(0), choices = levels(ABB$protected))),
                             br(),
                                fluidRow( selectizeInput("ecoregion", "Ecoregion (please select the ecoregion that your survey location belongs to)", selected = "MARINE WEST COAST FOREST", choices = levels(ABB$ecoregion)))
                             )
@@ -339,10 +368,14 @@ br()))
                     ),
             fluidRow( h2("Step 2:"), 
                             h3("Choose Model to Make Prediction"),
-                            radioButtons("model", "Select the Model Type", choices = list("Generalized Linear Model" = "linear", "Boosted Tree Model" = "tree", "Random Forest Model" = "rf", "The Best Model (the model has the smallest RMSE on the Model Fitting page)" = "best"), selected = "best")),
+                            radioButtons("model", "Select the Model Type", choices = list("Generalized Linear Model" = "linear", "Boosted Tree Model" = "tree", "Random Forest Model" = "rf"), selected = "rf")),
                       
             fluidRow( h2("Step 3:"),
-                           h3("The prediction value is: "))
+#____________________________________________________________________________________________________
+#____________________________________________________________________________________________________
+                      h3("Click ", actionButton("predict", "Make Prediction")),
+                      h3("The prediction value is: "),
+                      verbatimTextOutput("pred"))
                      
                 
         )
