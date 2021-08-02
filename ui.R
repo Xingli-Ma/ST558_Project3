@@ -39,7 +39,7 @@ dashboardPage(skin="red",
         tags$head(
             tags$style(
                 HTML(
-                    '#best_model {font-weight: bold; color: red;}', '#predict {color: navy blue; font-size: 24px;}', '#fit {color: navy blue; font-size: 24px;}' ))),
+                    '#best_model {font-weight: bold; color: red;}', '#predict {color: red; font-size: 24px;}', '#fit {color: red; font-size: 24px;}' ))),
         tabItems(
 # ______________________________________________________________________________________
             # About tab
@@ -63,7 +63,6 @@ dashboardPage(skin="red",
                     h3("The functionalities of the app"), 
                     h4("This shiny app has four tabs: About, Data, Data Exploration, and Modeling. The About page has a brief introduction about this app and its functionalities, as well as data description and data source. The Data page allows users to view and subset the data and download and save the data. The Data Exploration page generates different types of plots that can be specified by users and create summaries. The Modeling page fits three statistical models, including modeling approaches. The Modeling page has three tabs: Modeling Info, Model Fitting, and Prediction. More information relevant to each tab are available at the beginning of each page.")
                     ),
-            
 # ______________________________________________________________________________________
             # Data tab
             tabItem(tabName = "data", 
@@ -120,7 +119,6 @@ dashboardPage(skin="red",
                                 
                             ) # end of fluidRow
                         ), # end of data tab
-            
 # ______________________________________________________________________________________
             # Data Exploration tab
             tabItem(tabName = "explore", 
@@ -184,7 +182,7 @@ dashboardPage(skin="red",
                 br()
                 ),
                 column(6,
-                h3("Stacked barplot of number of black bear by protected lands and ecoregion"),
+                h3("The correlation plot between numeric variables"),
                 plotOutput("corrPlot"),
                 br()
                 )
@@ -192,7 +190,6 @@ dashboardPage(skin="red",
             fluidRow(
                 column(6, 
                 box(width = 15,
-                # select inputs with a drop-down list for user to select
                 selectInput(inputId="his_var", label="Select Variable to Create Histogram",
                 choices = list(
                 "Proportion of forest" = "forest",
@@ -201,14 +198,13 @@ dashboardPage(skin="red",
                 "Annual average temperature" = "temp",
                 "Annual average precipitation" = "precip",
                 "Human population" = "humanPop"
-                )
-                ),
+                )),
                 # create dynamic title
                 uiOutput("title1"),
                 plotOutput("hisPlot"),
                 br()
                 ) # end of box
-                ), 
+                ), # end of column
                 
                 column(6,
                 box(width = 15,
@@ -228,21 +224,13 @@ dashboardPage(skin="red",
                 )# end of box
                 ) # end of column 6
             ) # end of fluidRow
-            
-            #_________________________________________
-            #fluidRow(
-            #column(6,
-            #box(width = 15,
-            #uiOutput("title2"),
-            #plotOutput("hisPlotReg"),
-            #br())))
-            #____________________________________________
         ) # end of tabPanel
     ) # end of tabsetPanel
     ) # end of fluidPage
     ), # end of data exploratory tab
 # ______________________________________________________________________________________
             # Modeling tab
+# Model Info page
 tabItem(tabName = "model", 
         fluidPage(
             # Set tab style
@@ -314,12 +302,10 @@ br()))
                             ),
                         
                         box(width = 12,
-#__________________________________________________________________________________________________
-#__________________________________________________________________________________________________
-                            h3("Click ", actionButton("fit", "Fit Models")),
-                            h3("Compare model results and select the best model that has the smallest RMSE value."),
+                            h3("Please click ", actionButton("fit", "Fit Models"), "to see model results"),
+                            h3("Comparing model results and selecting the best model that has the smallest RMSE value."),
                             tableOutput("test_results"),
-                            verbatimTextOutput("best_model")
+                            h3(verbatimTextOutput("best_model"))
                             )
                         ), #end of column 3
                         
@@ -364,16 +350,14 @@ br()))
                             br(),
                                fluidRow( selectizeInput("ecoregion", "Ecoregion (please select the ecoregion that your survey location belongs to)", selected = "MARINE WEST COAST FOREST", choices = levels(ABB$ecoregion)))
                             )
-                    
                     ),
             fluidRow( h2("Step 2:"), 
                             h3("Choose Model to Make Prediction"),
                             radioButtons("model", "Select the Model Type", choices = list("Generalized Linear Model" = "linear", "Boosted Tree Model" = "tree", "Random Forest Model" = "rf"), selected = "rf")),
                       
             fluidRow( h2("Step 3:"),
-#____________________________________________________________________________________________________
-#____________________________________________________________________________________________________
-                      h3("Click ", actionButton("predict", "Make Prediction")),
+                      h3("Please click ", actionButton("predict", "Predict"), " to make prediction."),
+                      p("(Note: Remember to click Fit Models on the Model Fitting page, input the values for the above predictors, select the model type before you click the Predict button.)"),
                       h3("The prediction value is: "),
                       verbatimTextOutput("pred"))
                      
