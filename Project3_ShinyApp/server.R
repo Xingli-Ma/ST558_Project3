@@ -138,55 +138,76 @@ shinyServer(function(input, output, session) {
     # Define training control
     
     # Split the data into training and testing sets, and save them as reactive values
-    data_list <- reactive({
+    data_list <- eventReactive (
+        input$fit, {
         # set seed for reproducible
         set.seed(558)
         ABB_user_select <- ABB_new %>% select(P, N, as.vector(input$sel_pre))
         ABBIndex <- createDataPartition(ABB_user_select$P, p = (input$percent)/100, list = FALSE)
         ABB_train <- ABB_user_select[ABBIndex, ]
         ABB_test <- ABB_user_select[-ABBIndex, ]
-        list(ABB_train, ABB_test)
+        list(ABB_train, ABB_test, input$fold)
         })
     
-    results_list <- reactive({
+    
+    results_list <- reactive ({
         # Fit model 1: Generalized Linear Regression Model
         fit1 <- train(P ~ .-N, data = data_list()[[1]],
                       method = "glm",
                       family = "binomial",
                       weights = data_list()[[1]]$N,
                       preProcess = c("center", "scale"),
-                      trControl = trainControl(method = "cv", number = input$fold))
+                      trControl = trainControl(method = "cv", number = data_list()[[3]]))
         # Fit model 2: Boosted Tree Model
         fit2 <- train(P~ ., data = select(data_list()[[1]],-c(N)),
                       method = "gbm",
                       preProcess = c("center", "scale"),
                       verbose = FALSE,
-                      trControl = trainControl(method = "cv", number = input$fold))
+                      trControl = trainControl(method = "cv", number = data_list()[[3]]))
         # Fit model 3: Random Forest Model
         fit3 <- train(P~ ., data = select(data_list()[[1]],-c(N)),
                       method = "rf",
                       preProcess = c("center", "scale"),
-                      trControl = trainControl(method = "cv", number = input$fold))
+                      trControl = trainControl(method = "cv", number = data_list()[[3]]))
         model_fits <- list(fit1, fit2, fit3)
         model_fits
-    })
+        })
     
-    output$dt_fit1 <- renderPrint({
+    output$dt_fit1 <- renderPrint({if (input$fit) {
+        # Status bar
+        progress <- Progress$new(session, min=1, max=60)
+        on.exit(progress$close())
+        
+        progress$set(message = 'You model is running',
+                     detail = 'Please wait...')
+        
+        for (i in 1:60) {
+            progress$set(value = i)
+            Sys.sleep(0.5)
+        }
+        
         results_list()[[1]]
+    }
     })
     
     
-    output$dt_fit2 <- renderPrint({
+    output$dt_fit2 <- renderPrint({if (input$fit) {
         results_list()[[2]]
+    }
     })
     
     
-    output$dt_fit3 <- renderPrint({
+    output$dt_fit3 <- renderPrint({if (input$fit) {
         results_list()[[3]]
+    }
     })
+    
+        
     
     # Comparing and Selecting Models
-    output$test_results <- function(){
+    
+    
+    output$test_results <- function(){if (input$fit) {
         
         # Making predictions on testing set
         predfit1 <- predict(results_list()[[1]], newdata = data_list()[[2]])
@@ -204,36 +225,40 @@ shinyServer(function(input, output, session) {
         
         # Show RMSE values for all models
         testResults %>% knitr::kable("html") %>% kable_styling("striped", full_width = F)
+        }
     }
     
     # Declear the best model
-    output$best_model <- renderPrint({
+    output$best_model <- renderPrint({if (input$fit) {
     bestModel <- rownames(testResults[testResults$RMSE == min(testResults$RMSE), ])
     paste("The best model is:", bestModel, "!")
+        }
     })
-    
     #__________________________________________________________________________________________
     # Model Prediction
     
     # Create a data frame given user input values, and store it as reactive values.
-    new_data <- reactive({
+    
+    new_data <- eventReactive (
+        input$predict, {
         newData <- data.frame(c(1), c(input$forest), c(input$grassland), c(input$cropland), c(input$temp), c(input$precip), c(input$humanPop), c(as.character(input$protected)),c(input$ecoregion), stringsAsFactors=FALSE)
         colnames(newData) <- c("N", "forest", "grassland", "cropland", "temp", "precip", "humanPop", "protected", "ecoregion")
         newData
     })
     
     # Make prediction
-    output$pred <- renderPrint({
-        if(input$model == "linear"){
-            pred <- predict(results_list()[[1]], newdata = new_data())
-            pred[[1]]
-        } else if(input$model == "tree"){
-            pred <- predict(results_list()[[2]], newdata = new_data())
-            pred[[1]]
-        } else if(input$model == "rf"){
-            pred <- predict(results_list()[[3]], newdata = new_data())
-            pred[[1]]
-        }
-    })
+    output$pred <- eventReactive (
+        input$predict, {
+        if(input$model == "linear"){ 
+            prediction <- predict(results_list()[[1]], newdata = new_data())
+            prediction[[1]]
+            } else if(input$model == "tree"){ 
+            prediction <-predict(results_list()[[2]], newdata = new_data())
+            prediction[[1]]
+            } else if(input$model == "rf"){ 
+            prediction <- predict(results_list()[[3]], newdata = new_data())
+            prediction[[1]]
+            }
+        })
     
 })

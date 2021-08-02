@@ -39,7 +39,7 @@ dashboardPage(skin="red",
         tags$head(
             tags$style(
                 HTML(
-                    '#best_model {font-weight: bold; color: red;}', '#predict {color: navy blue; font-size: 24px;}', '#fit {color: navy blue; font-size: 24px;}' ))),
+                    '#best_model {font-weight: bold; color: red;}', '#predict {color: red; font-size: 24px;}', '#fit {color: red; font-size: 24px;}' ))),
         tabItems(
 # ______________________________________________________________________________________
             # About tab
@@ -184,7 +184,7 @@ dashboardPage(skin="red",
                 br()
                 ),
                 column(6,
-                h3("Stacked barplot of number of black bear by protected lands and ecoregion"),
+                h3("The correlation plot between numeric variables"),
                 plotOutput("corrPlot"),
                 br()
                 )
@@ -192,7 +192,6 @@ dashboardPage(skin="red",
             fluidRow(
                 column(6, 
                 box(width = 15,
-                # select inputs with a drop-down list for user to select
                 selectInput(inputId="his_var", label="Select Variable to Create Histogram",
                 choices = list(
                 "Proportion of forest" = "forest",
@@ -201,14 +200,13 @@ dashboardPage(skin="red",
                 "Annual average temperature" = "temp",
                 "Annual average precipitation" = "precip",
                 "Human population" = "humanPop"
-                )
-                ),
+                )),
                 # create dynamic title
                 uiOutput("title1"),
                 plotOutput("hisPlot"),
                 br()
                 ) # end of box
-                ), 
+                ), # end of column
                 
                 column(6,
                 box(width = 15,
@@ -316,10 +314,10 @@ br()))
                         box(width = 12,
 #__________________________________________________________________________________________________
 #__________________________________________________________________________________________________
-                            h3("Click ", actionButton("fit", "Fit Models")),
-                            h3("Compare model results and select the best model that has the smallest RMSE value."),
+                            h3("Please click ", actionButton("fit", "Fit Models"), "to see model results"),
+                            h3("Comparing model results and selecting the best model that has the smallest RMSE value."),
                             tableOutput("test_results"),
-                            verbatimTextOutput("best_model")
+                            h3(verbatimTextOutput("best_model"))
                             )
                         ), #end of column 3
                         
@@ -373,7 +371,8 @@ br()))
             fluidRow( h2("Step 3:"),
 #____________________________________________________________________________________________________
 #____________________________________________________________________________________________________
-                      h3("Click ", actionButton("predict", "Make Prediction")),
+                      h3("Please click ", actionButton("predict", "Predict"), " to make prediction."),
+                      p("(Note: Remember to click Fit Models on the Model Fitting page, input the values for the above predictors, select the model type before you click the Predict button.)"),
                       h3("The prediction value is: "),
                       verbatimTextOutput("pred"))
                      
