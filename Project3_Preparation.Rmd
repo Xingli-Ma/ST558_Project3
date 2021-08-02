@@ -207,7 +207,20 @@ row.names(testResults) <- c("Linear Regression",
                             "Random Forest")
 # show RMSE values for all models
 kable(testResults) 
-```    
+```      
+
+
+    
+    #____________________________________________________________________________________________
+    # Create a histogram plot for select variable by ecoregion
+    #output$hisPlotReg <- renderPlot({
+        # "forest", "grassland", "cropland", "temp", "precip", "humanPop"
+    #hr <- ggplot(ABBdata, aes_string(x=input$var))
+    #hr + geom_histogram(bins=20, aes(y=..density..)) + 
+        #geom_density(stat="density", adjust=0.4, lwd=2, colour= "red") +
+        #facet_wrap(~ ecoregion, ncol = 2) +
+        #xlab("Number of Black Bear") + ylab("Density")
+    #})
 
 ```{r}
 #Declare the Winner

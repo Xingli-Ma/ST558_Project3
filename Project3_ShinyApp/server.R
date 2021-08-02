@@ -22,7 +22,7 @@ ABBdata$protected <- as.factor(ABBdata$protected)
 ABBdata$ecoregion <- as.factor(ABBdata$ecoregion)
 ABBdata <- ABBdata[,-1]
 
-# Define server logic required to draw a histogram
+# Define server 
 shinyServer(function(input, output, session) {
     #__________________________________________________________________________________________
     # About page
@@ -109,18 +109,6 @@ shinyServer(function(input, output, session) {
         h3(text2)
     })
     
-    #____________________________________________________________________________________________
-    # Create a histogram plot for select variable by ecoregion
-    #output$hisPlotReg <- renderPlot({
-        # "forest", "grassland", "cropland", "temp", "precip", "humanPop"
-    #hr <- ggplot(ABBdata, aes_string(x=input$var))
-    #hr + geom_histogram(bins=20, aes(y=..density..)) + 
-        #geom_density(stat="density", adjust=0.4, lwd=2, colour= "red") +
-        #facet_wrap(~ ecoregion, ncol = 2) +
-        #xlab("Number of Black Bear") + ylab("Density")
-    #})
-    #_________________________________________________________________________________________
-    
     output$graph <- renderPlotly({
         plot_ly(ABBdata, x = ~get(input$choice), y = ~Y, type = 'scatter', mode = 'markers') %>%
             layout(xaxis = list(title = input$choice), yaxis = list(title = "Number of Black Bear"))
@@ -129,13 +117,12 @@ shinyServer(function(input, output, session) {
     #__________________________________________________________________________________________
     # Model page
     # Model Info tab
+    
     # Model Fitting tab
     ABB_new <- ABBdata
     ABB_new$P <- ABB$Y/ABB$N
     # Remove Y variable
     ABB_new <- ABB_new[,-1]
-    # Model 1: Generalized Linear Regression Model
-    # Define training control
     
     # Split the data into training and testing sets, and save them as reactive values
     data_list <- eventReactive (
@@ -149,7 +136,6 @@ shinyServer(function(input, output, session) {
         list(ABB_train, ABB_test, input$fold)
         })
     
-    
     results_list <- reactive ({
         # Fit model 1: Generalized Linear Regression Model
         fit1 <- train(P ~ .-N, data = data_list()[[1]],
@@ -157,6 +143,7 @@ shinyServer(function(input, output, session) {
                       family = "binomial",
                       weights = data_list()[[1]]$N,
                       preProcess = c("center", "scale"),
+                      # Define training control
                       trControl = trainControl(method = "cv", number = data_list()[[3]]))
         # Fit model 2: Boosted Tree Model
         fit2 <- train(P~ ., data = select(data_list()[[1]],-c(N)),
@@ -173,14 +160,13 @@ shinyServer(function(input, output, session) {
         model_fits
         })
     
+    # Model 1 output
     output$dt_fit1 <- renderPrint({if (input$fit) {
         # Status bar
         progress <- Progress$new(session, min=1, max=60)
         on.exit(progress$close())
-        
         progress$set(message = 'You model is running',
                      detail = 'Please wait...')
-        
         for (i in 1:60) {
             progress$set(value = i)
             Sys.sleep(0.5)
@@ -190,23 +176,19 @@ shinyServer(function(input, output, session) {
     }
     })
     
-    
+    # Model 2 output
     output$dt_fit2 <- renderPrint({if (input$fit) {
         results_list()[[2]]
     }
     })
     
-    
+    # Model 3 output
     output$dt_fit3 <- renderPrint({if (input$fit) {
         results_list()[[3]]
     }
     })
     
-        
-    
     # Comparing and Selecting Models
-    
-    
     output$test_results <- function(){if (input$fit) {
         
         # Making predictions on testing set
@@ -238,7 +220,6 @@ shinyServer(function(input, output, session) {
     # Model Prediction
     
     # Create a data frame given user input values, and store it as reactive values.
-    
     new_data <- eventReactive (
         input$predict, {
         newData <- data.frame(c(1), c(input$forest), c(input$grassland), c(input$cropland), c(input$temp), c(input$precip), c(input$humanPop), c(as.character(input$protected)),c(input$ecoregion), stringsAsFactors=FALSE)
