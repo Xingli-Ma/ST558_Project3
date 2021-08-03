@@ -1,4 +1,4 @@
-## Title: ST558 Project 3: R Shiny Dashboard: American Black Bear Data Analysis    
+## Title: ST 558 Project 3: R Shiny Dashboard: American Black Bear Data Analysis    
 
 ### Introduction  
 This Shiny App includes four sections: About, Data, Data Exploration, and Modeling. The Modeling section has three pages: Modeling Info, Model Fitting, and Prediction. It can show a lot of dynamic and interactive information based on user inputs.
