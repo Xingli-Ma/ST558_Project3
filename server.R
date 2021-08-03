@@ -120,7 +120,7 @@ shinyServer(function(input, output, session) {
     
     # Model Fitting tab
     ABB_new <- ABBdata
-    ABB_new$P <- ABB$Y/ABB$N
+    ABB_new$P <- ABBdata$Y/ABBdata$N
     # Remove Y variable
     ABB_new <- ABB_new[,-1]
     
