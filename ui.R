@@ -346,9 +346,9 @@ br()))
                             br(),
                                fluidRow( numericInput("humanPop",label= "Human population (please enter the human population in your survey location)", value = median(ABBdata$humanPop), min = 0, max = 1000000))
                             ),
-                     column(3, fluidRow( selectizeInput("protected", "Protected lands (please select the Indicator of whether the region includes protected lands)", selected = as.character(0), choices = levels(ABB$protected))),
+                     column(3, fluidRow( selectizeInput("protected", "Protected lands (please select the Indicator of whether the region includes protected lands)", selected = as.character(0), choices = levels(ABBdata$protected))),
                             br(),
-                               fluidRow( selectizeInput("ecoregion", "Ecoregion (please select the ecoregion that your survey location belongs to)", selected = "MARINE WEST COAST FOREST", choices = levels(ABB$ecoregion)))
+                               fluidRow( selectizeInput("ecoregion", "Ecoregion (please select the ecoregion that your survey location belongs to)", selected = "MARINE WEST COAST FOREST", choices = levels(ABBdata$ecoregion)))
                             )
                     ),
             fluidRow( h2("Step 2:"), 
