@@ -7,6 +7,7 @@ This App is created to demonstrate the American black bear data information and 
 
 ### The following R packages are required to run this Shiny App.    
 
+```{r}
 library(shiny)
 library(shinydashboard)
 require(knitr)
@@ -17,9 +18,10 @@ library(ggplot2)
 library(plotly)
 require(corrplot)
 library(tidyverse)
-library(DT)    
+library(DT)
+```
 
-### To install all above packages that are needed, please run this line of code:    
+### To install all the above packages, please run this line of code:    
 
 install.packages(c("shiny", "shinydashboard", "knitr", "kableExtra", "tibble", "caret", "ggplot2", "plotly", "corrplot", "tidyverse", "DT"))    
 
